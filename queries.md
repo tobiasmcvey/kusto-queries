@@ -289,6 +289,35 @@ Perf
 
 ```
 
+OR we can just project our data and calculate it on the fly
+```
+Perf
+| where CounterName == "Free Megabytes"
+| project ObjectName
+        , CounterName 
+        , InstanceName 
+        , TimeGenerated
+        , FreeGB = CounterValue / 1000
+        , FreeMB = CounterValue 
+        , FreeKB = CounterValue * 1000
+
+```
+
+## Project-away
+
+Remove selected columns from the output
+```
+Perf
+| where CounterName == "Free Megabytes"
+| project-away TenantId
+            , SourceSystem 
+            , CounterPath 
+            , MG
+```
+
+
+
+
 
 
 ## **Common KPIs**
