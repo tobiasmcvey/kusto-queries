@@ -167,6 +167,44 @@ Perf
 
 ## Summarize
 
+Aggregation function for summarizing data in a table, can include `by`
+```
+Perf
+| summarize count()  by CounterName
+```
+
+Summarizing multiple columns
+```
+Perf
+| summarize count()  by ObjectName, CounterName
+```
+Note it generates a third column called `count_`. The name is automatically generated.
+
+If we want to supply a more suitable name as a variable, we can name it
+```
+Perf
+| summarize PerfCount=count()
+            by ObjectName, CounterName
+```
+
+With Summarize, use other aggregation functions
+```
+Perf
+| where CounterName == "% Free Space"
+| summarize NumberOfEntries=count()
+            , AverageFreeSpace=avg(CounterValue)
+            by CounterName
+```
+
+Using `Bin` to create logical groups
+```
+Perf
+| summarize NumberOfEntries=count()
+            by bin(TimeGenerated, 1d)
+```
+
+
+
 
 ## **Common KPIs**
 
