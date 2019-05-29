@@ -10,6 +10,18 @@ Searching
 ```
 search "event name" | take 10
 ```
+Note we use the `take` command to limit our search to 10 search results. This speeds up our querying substantially. Kusto queries can take a long time to execute if the datasets are large. To avoid this, use the take command before running queries on a full dataset. 
+
+The timeout can take anything from 10 seconds up to 30 minutes.
+
+Searching in a single dataset
+```
+Perf | search "Contoso"
+```
+Searching in multiple datasets
+```
+search in (Perf, Event, Alert) "Contoso" | take 10
+```
 
 Dynamic timerange
 ```
