@@ -1,4 +1,6 @@
 
+Start learning at https://portal.loganalytics.io/demo
+
 **Learning resources**
 
 * [Get started with Azure monitor](https://docs.microsoft.com/en-us/azure/azure-monitor/log-query/get-started-portal)
@@ -6,13 +8,15 @@
 * https://4pp1n51ght5.com/2017/08/23/using-azure-log-analytics-to-calculate-user-engagement-metrics/
 * https://4pp1n51ght5.com/2017/02/08/calculating-stickiness-using-appinsights-analytics/
 
-Searching 
+## Searching 
+
+Search across all datasets
 ```
 search "event name" | take 10
 ```
 Note we use the `take` command to limit our search to 10 search results. This speeds up our querying substantially. Kusto queries can take a long time to execute if the datasets are large. To avoid this, use the take command before running queries on a full dataset. 
 
-The timeout can take anything from 10 seconds up to 30 minutes.
+The timeout can take anything from 10 seconds up to 30 minutes. You can cancel your query if you don't want to wait, or allow the query to run and open a new query in a new tab if you need it.
 
 Searching in a single dataset
 ```
@@ -22,7 +26,45 @@ Searching in multiple datasets
 ```
 search in (Perf, Event, Alert) "Contoso" | take 10
 ```
+Searching in specific columns for a match
+```
+Perf
+| search CounterName=="Available MBytes" | take 10
+```
+Searching for a term anywhere in text
+```
+Perf
+| search "*Bytes*" | take 10
+```
+Searching for columns that begins with
+```
+Perf
+| search * startswith "Bytes" | take 10
+```
+Searching for columns that ends with
+```
+Perf
+| search * endswith "Bytes" | take 10
+```
+Search starts with specific term, anything in between and ends with a specific term
+```
+Perf
+| search "Free*bytes" | take 10
+```
 
+**Combining searches**
+Multiple terms
+```
+Perf
+| search "Free*bytes" and ("C:" or "D:") | take 10
+```
+Using regular expressions
+```
+Perf
+| search InstanceName matches regex "[A-Z]:" | take 10
+```
+
+## Time and timerange
 Dynamic timerange
 ```
 | where timestamp between (datetime(2019-01-01T00:01:24.615Z)..now())
