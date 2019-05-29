@@ -322,9 +322,41 @@ Perf
 
 ## Distinct
 
+Retrieves a list of deduplicated values 
+```
+Perf
+| distinct ObjectName, CounterName
+```
 
+Only show unique error events
+```
+Event
+| where EventLevelName == "Error"
+| distinct Source
+```
 
+Using top for the first 20 rows
+```
+Perf
+| top 20 by TimeGenerated desc
+```
+Sort rows ascending with `asc` or descending with `desc`
 
+Combining everything so far
+```
+Perf
+| where CounterName == "Free Megabytes"     // Get the free Megabytes
+        and TimeGenerated >= ago(1h)        // ... within the last hour
+| project Computer                          // For each return the Computer Name
+        , TimeGenerated                     // ...and when the counter was generated
+        , CounterName                       // ...and the Counter Name
+        , FreeMegaBytes=CounterValue        // ...and rename the counter value
+| distinct Computer                         // Now weed out the duplicate rows as
+        , TimeGenerated
+        , CounterName                       // ...the perf table will have
+        , FreeMegaBytes                     // ...multiple entries during the day
+| top 25 by FreeMegaBytes asc               // Filter to most critical ones
+```
 
 
 ## **Common KPIs**
