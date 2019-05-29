@@ -53,6 +53,7 @@ Perf
 ```
 
 **Combining searches**
+
 Multiple terms
 ```
 Perf
@@ -70,7 +71,27 @@ Dynamic timerange
 | where timestamp between (datetime(2019-01-01T00:01:24.615Z)..now())
 ```
 
-**Common KPIs**
+## Where 
+
+```
+Perf
+| where TimeGenerated >= ago(1h)
+```
+Note the time range for the query is automatically set in the query when we use time operators in our where clause
+
+Using the `and` statement
+```
+Perf
+| where TimeGenerated >= ago(1h) and CounterName == "Bytes Received/sec" | take 10
+```
+
+Using the `or` statement
+```
+Perf
+| where TimeGenerated >= ago(1h) and (CounterName == "Bytes Received/sec" or CounterName == "% Processor Time") | take 10
+```
+
+## **Common KPIs**
 
 DAU to MAU activity ratio - Daily Active Users to Monthly Active Users
 ```
