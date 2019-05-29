@@ -557,6 +557,56 @@ Event
 ```
 Retrieves number of events per source by month for the last 365 days.
 
+You can also use `startofweek` and `startofyear` for similar operations.
+
+There are also corresponding end of functions, f.ex `endofday` `endofweek`, `endofmonth` and `endofyear`
+```
+Event
+| where TimeGenerated >= ago(7d)
+| extend DayGenerated = endofday(TimeGenerated)
+| project Source 
+        , DayGenerated 
+| summarize EventCount=count() 
+        by DayGenerated
+        , Source
+| sort by DayGenerated desc
+        , Source asc
+```
+
+## Between commands
+Allows us to specify a range of values, be it numeric or datetime, to retrieve.
+
+```
+Perf
+| where CounterName == "% Free Space"
+| where CounterValue between( 70.0 .. 100.0 )
+```
+
+Likewise for dates
+```
+Perf
+| where CounterName == "% Free Space"
+| where TimeGenerated between( datetime(2019-04-01) .. datetime(2019-04-03)  )
+| take 10
+```
+
+Gathering data for start of and end of specific dates
+```
+Perf
+| where CounterName == "% Free Space"
+| where TimeGenerated between( startofday(datetime(2019-04-01)) .. endofday(datetime(2019-04-03))  )
+| take 10
+```
+
+There is also a "not between" operator `!between`, which lets us fetch values not within a range - only those outside it.
+```
+Perf
+| where CounterName == "% Free Space"
+| where CounterValue !between ( 0.0 .. 69.9999 )
+| take 10
+```
+
+## Todynamic 
 
 
 
