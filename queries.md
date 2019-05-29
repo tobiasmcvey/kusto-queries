@@ -303,9 +303,7 @@ Perf
 
 ```
 
-## Project-away
-
-Remove selected columns from the output
+`Project-away` lets you remove selected columns from the output
 ```
 Perf
 | where CounterName == "Free Megabytes"
@@ -314,6 +312,15 @@ Perf
             , CounterPath 
             , MG
 ```
+
+`Project-rename` lets you rename a specific column
+```
+Perf
+| where TimeGenerated > ago(1h)
+| project-rename myRenamedComputer = Computer 
+```
+
+## Distinct
 
 
 
