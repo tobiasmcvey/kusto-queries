@@ -134,7 +134,7 @@ Perf
 | where InstanceName matches regex "[A-Z]:" | take 10
 ```
 
-## Take command
+## Take and Limit command
 Take retrieves a random number of rows, f.ex
 ```
 Perf
@@ -142,7 +142,30 @@ Perf
 ```
 Takes 10 rows
 
+Limit is the equivalent
+```
+Perf
+| limit 10
+```
 
+## Count operator 
+Count rows in a table
+```
+Perf
+| count
+```
+Counts all rows in the Perf dataset
+
+Count can be used with filtering to count rows in a selected table
+```
+Perf
+| where TimeGenerated >= ago(1h)
+        and CounterName == "Bytes received/sec"
+        and CounterValue > 0
+| count
+```
+
+## Summarize
 
 
 ## **Common KPIs**
