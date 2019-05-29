@@ -358,6 +358,207 @@ Perf
 | top 25 by FreeMegaBytes asc               // Filter to most critical ones
 ```
 
+# Scalar operators
+
+Scalar operators allow us to format and transform data, and logical operators for "if then" logic.
+
+**Print** retrieves an output that is defined or calculated
+```
+print "Hello world"
+```
+This command is useful for debugging a calculation stepwise
+
+You can also name the output
+```
+print something="something"
+```
+
+Get the time in UTC. This is the standard in all Azure logs. We can use it for any changes to date and time data.
+```
+print now()
+```
+
+Print time one hour ago
+```
+print ago(1) // 1h 1m 1d 1s 1ms 1microsend 1tick
+```
+
+Print time in the future
+```
+print ago(-1d) // print time tomorrow, -365d gives us a year in the future
+```
+
+This lets us retrieve values for a specific timerange when combined with other clauses such as where and other operators.
+
+**Sort** lets us sort the columns as desired
+```
+Perf
+| where TimeGenerated > ago(15m)
+| where CounterName == "Avg. Disk sec/Read"
+        and InstanceName == "C:"
+| project Computer 
+        , TimeGenerated 
+        , ObjectName 
+        , CounterName 
+        , InstanceName 
+        , CounterValue 
+| sort by Computer
+        , TimeGenerated
+```
+
+Sort by ascending
+```
+Perf
+| where TimeGenerated > ago(15m)
+| where CounterName == "Avg. Disk sec/Read"
+        and InstanceName == "C:"
+| project Computer 
+        , TimeGenerated 
+        , ObjectName 
+        , CounterName 
+        , InstanceName 
+        , CounterValue 
+| sort by Computer asc
+        , TimeGenerated asc
+```
+
+You can also mix sorting clauses
+```
+Perf
+| where TimeGenerated > ago(15m)
+| where CounterName == "Avg. Disk sec/Read"
+        and InstanceName == "C:"
+| project Computer 
+        , TimeGenerated 
+        , ObjectName 
+        , CounterName 
+        , InstanceName 
+        , CounterValue 
+| sort by Computer asc
+        , TimeGenerated
+```
+
+`order by` is an alias for `sort by`
+
+## Extract
+Extract will match a string based on a regular expression pattern, and retrieves only the part that matches.
+
+```
+Perf
+| where ObjectName == "LogicalDisk"
+        and InstanceName matches regex "[A-Z]:" 
+| project Computer 
+        , CounterName 
+        , extract("[A-Z]:", 0, InstanceName)
+```
+
+Extract only the disk name without the colon
+```
+Perf
+| where ObjectName == "LogicalDisk"
+        and InstanceName matches regex "[A-Z]:" 
+| project Computer 
+        , CounterName 
+        , extract("([A-Z]):", 1, InstanceName)
+```
+
+## Parse
+Parse takes a text string and extracts part of it into a column name using markers
+
+`Parse` runs until it has parsed the entire dataset or reached the final match we've specified.
+
+Parse is very useful when you have large blobs of text you want to turn into standard components
+
+```
+Event
+| where RenderedDescription startswith "Event code:"
+| parse RenderedDescription with "Event code: " myEventCode
+                                " Event message: " myEventMessage
+                                " Event time: " myEventTime
+                                " Event time (UTC): " myEventTimeUTC
+                                " Event ID: " myEventID
+                                " Event sequence: " myEventSequence
+                                " Event occurrence: " *
+| project myEventCode, myEventMessage, myEventTime, myEventTimeUTC, myEventID, myEventSequence 
+```
+
+## datetime arithmetic
+
+Convert a string into a datetime for our query - for year to date, using `datetime`
+```
+Perf
+| where CounterName == "Avg. Disk sec/Read"
+| where CounterValue > 0
+| take 100 
+| extend HowLongAgo=( now() - TimeGenerated )
+        , TimeSinceStartofYear=( TimeGenerated - datetime(2018-01-01) )
+| project Computer 
+        , CounterName 
+        , CounterValue 
+        , TimeGenerated 
+        , HowLongAgo 
+        , TimeSinceStartofYear 
+
+```
+
+Converting a datetime, f.ex into hours can be done with simple arithmetic of division
+```
+Perf
+| where CounterName == "Avg. Disk sec/Read"
+| where CounterValue > 0
+| take 100 
+| extend HowLongAgo=( now() - TimeGenerated )
+        , TimeSinceStartOfYear=( TimeGenerated - datetime(2018-01-01) )
+| extend TimeSinceStartOfYearInHours=( TimeSinceStartOfYear / 1h)
+| project Computer 
+        , CounterName 
+        , CounterValue 
+        , TimeGenerated 
+        , HowLongAgo 
+        , TimeSinceStartOfYear 
+        , TimeSinceStartOfYearInHours 
+
+```
+
+Simple datetime calculations over columns
+```
+Usage
+| extend Duration=( EndTime - StartTime )
+| project Computer 
+        , StartTime 
+        , EndTime 
+        , Duration
+```
+
+Combining summarize with datetime functions by a specific timeperiod
+```
+Event
+| where TimeGenerated >= ago(7d)
+| extend DayGenerated = startofday(TimeGenerated) 
+| project Source 
+        , DayGenerated 
+| summarize EventCount=count() 
+        by DayGenerated
+        , Source
+```
+Retrieves number of events per source and for the last 7 days.
+
+```
+Event
+| where TimeGenerated >= ago(365d)
+| extend MonthGenerated = startofmonth(TimeGenerated) 
+| project Source 
+        , MonthGenerated 
+| summarize EventCount=count() 
+        by MonthGenerated
+        , Source
+| sort by MonthGenerated desc
+        , Source asc
+```
+Retrieves number of events per source by month for the last 365 days.
+
+
+
 
 ## **Common KPIs**
 
