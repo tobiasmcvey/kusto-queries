@@ -91,6 +91,60 @@ Perf
 | where TimeGenerated >= ago(1h) and (CounterName == "Bytes Received/sec" or CounterName == "% Processor Time") | take 10
 ```
 
+Stacking multiple where clauses
+```
+Perf
+| where TimeGenerated >= ago(1h) 
+| where (CounterName == "Bytes Received/sec" 
+        or
+        CounterName == "% Processor Time") 
+| where CounterValue > 0 
+| take 10
+```
+
+Other uses for where - simulating search with where
+```
+Perf
+| where * has "Bytes" | take 10
+```
+
+**Positional matching** with where
+
+Matches words beginning with Bytes
+```
+Perf
+| where * hasprefix "Bytes" | take 10
+```
+
+Matches words ending with Bytes
+```
+Perf
+| where * hassuffix "Bytes" | take 10
+```
+
+Using `contains`
+```
+Perf
+| where * contains "Bytes" | take 10
+```
+
+Using regular expressions with where
+```
+Perf
+| where InstanceName matches regex "[A-Z]:" | take 10
+```
+
+## Take command
+Take retrieves a random number of rows, f.ex
+```
+Perf
+| take 10
+```
+Takes 10 rows
+
+
+
+
 ## **Common KPIs**
 
 DAU to MAU activity ratio - Daily Active Users to Monthly Active Users
