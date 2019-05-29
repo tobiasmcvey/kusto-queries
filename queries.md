@@ -203,6 +203,91 @@ Perf
             by bin(TimeGenerated, 1d)
 ```
 
+Using other values for binning
+```
+Perf
+| where CounterName == "% Free Space"
+| summarize NumberOfRowsAtThisPercentLevel=count()
+            by bin(CounterValue, 10)
+```
+
+
+## Extend
+
+Extend allows you to create calculated columns to add to your tables
+```
+Perf
+| where CounterName == "Free Megabytes"
+| extend FreeGB = CounterValue / 1000
+```
+
+You can also create multiple columns
+```
+Perf
+| where CounterName == "Free Megabytes"
+| extend FreeGB = CounterValue / 1000
+        , FreeKB = CounterValue * 1000
+```
+
+Repeating a column
+```
+Perf
+| where CounterName == "Free Megabytes"
+| extend FreeGB = CounterValue / 1000
+        , FreeMB = CounterValue 
+        , FreeKB = CounterValue * 1000
+```
+
+Create new string values
+
+We can create a new column with string values
+```
+Perf
+| where TimeGenerated >= ago(10m)
+| extend ObjectCounter = strcat(ObjectName, " - ", CounterName) 
+```
+We use `strcat` to concatenate strings
+
+## Project command
+
+Project allows us to select which columns we want in our table
+```
+Perf
+| project ObjectName
+        , CounterName 
+        , InstanceName 
+        , CounterValue 
+        , TimeGenerated 
+```
+
+Project and Extend are very useful when creating tables with our specific data.
+```
+Perf
+| project ObjectName
+        , CounterName 
+        , InstanceName 
+        , CounterValue 
+        , TimeGenerated
+| extend FreeGB = CounterValue / 1000
+        , FreeMB = CounterValue 
+        , FreeKB = CounterValue * 1000
+```
+
+If we want to omit a specific column we must calculate our values first, then project afterwards
+```
+Perf
+| extend FreeGB = CounterValue / 1000
+        , FreeMB = CounterValue 
+        , FreeKB = CounterValue * 1000
+| project ObjectName
+        , CounterName 
+        , InstanceName 
+        , TimeGenerated
+        , FreeGB 
+        , FreeMB 
+        , FreeKB 
+
+```
 
 
 
