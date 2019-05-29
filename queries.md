@@ -608,6 +608,107 @@ Perf
 
 ## Todynamic 
 
+Takes json stored in a string and lets you retrieve its individual values
+
+Convert json to a variable using `todynamic`, then step into the json array and project the values
+
+Use the key as column names
+
+```
+SecurityAlert
+| where TimeGenerated > ago(365d)
+| extend Extprops=todynamic(ExtendedProperties) 
+| project AlertName 
+        , TimeGenerated 
+        , Extprops["Alert Start Time (UTC)"]
+        , Extprops["Source"]
+        , Extprops["Non-Existent Users"]
+        , Extprops["Existing Users"]
+        , Extprops["Failed Attempts"]
+        , Extprops["Successful Logins"]
+        , Extprops["Successful User Logons"]
+        , Extprops["Account Logon Ids"]
+        , Extprops["Failed User Logons"]
+        , Extprops["End Time UTC"]
+        , Extprops["ActionTaken"]
+        , Extprops["resourceType"]
+        , Extprops["ServiceId"]
+        , Extprops["ReportingSystem"]
+        , Extprops["OccuringDatacenter"]
+
+```
+
+You can use column-renaming to structure the output better
+
+```
+SecurityAlert
+| where TimeGenerated > ago(365d)
+| extend Extprops=todynamic(ExtendedProperties) 
+| project AlertName 
+        , TimeGenerated 
+        , AlertStartTime = Extprops["Alert Start Time (UTC)"]
+        , Source = Extprops["Source"]
+        , NonExistentUsers = Extprops["Non-Existent Users"]
+        , ExistingUsers = Extprops["Existing Users"]
+        , FailedAttempts = Extprops["Failed Attempts"]
+        , SuccessfulLogins = Extprops["Successful Logins"]
+        , SuccessfulUserLogons = Extprops["Successful User Logons"]
+        , AccountLogonIds = Extprops["Account Logon Ids"]
+        , FailedUserLogons= Extprops["Failed User Logons"]
+        , EndTimeUtc = Extprops["End Time UTC"]
+        , ActionTaken = Extprops["ActionTaken"]
+        , ResourceType = Extprops["resourceType"]
+        , ServiceId = Extprops["ServiceId"]
+        , ReportingSystem = Extprops["ReportingSystem"]
+        , OccuringDataCenter = Extprops["OccuringDatacenter"]
+
+```
+
+If the JSON keys do not have spaces you can also use property notation
+
+```
+SecurityAlert
+| where TimeGenerated > ago(365d)
+| extend Extprops=todynamic(ExtendedProperties) 
+| project AlertName 
+        , TimeGenerated 
+        , AlertStartTime = Extprops["Alert Start Time (UTC)"]
+        , Source = Extprops.Source
+        , NonExistentUsers = Extprops["Non-Existent Users"]
+        , ExistingUsers = Extprops["Existing Users"]
+        , FailedAttempts = Extprops["Failed Attempts"]
+        , SuccessfulLogins = Extprops["Successful Logins"]
+        , SuccessfulUserLogons = Extprops["Successful User Logons"]
+        , AccountLogonIds = Extprops["Account Logon Ids"]
+        , FailedUserLogons= Extprops["Failed User Logons"]
+        , EndTimeUtc = Extprops["End Time UTC"]
+        , ActionTaken = Extprops.ActionTaken
+        , ResourceType = Extprops.resourceType
+        , ServiceId = Extprops.ServiceId
+        , ReportingSystem = Extprops.ReportingSystem
+        , OccuringDataCenter = Extprops.OccuringDatacenter
+```
+
+Multilevel notation is also supported, f.ex `Extprops.Level1.Level2`
+
+## format_datetime
+Allows you to return specific date formats
+
+```
+Perf
+| take 100 
+| project CounterName 
+        , CounterValue 
+        , TimeGenerated
+        , format_datetime(TimeGenerated, "y-M-d")
+        , format_datetime(TimeGenerated, "yyyy-MM-dd")
+        , format_datetime(TimeGenerated, "MM/dd/yyyy")
+        , format_datetime(TimeGenerated, "MM/dd/yyyy hh:mm:ss tt")
+        , format_datetime(TimeGenerated, "MM/dd/yyyy HH:MM:ss")
+        , format_datetime(TimeGenerated, "MM/dd/yyyy HH:mm:ss.ffff")
+```
+
+
 
 
 ## **Common KPIs**
