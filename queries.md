@@ -806,3 +806,40 @@ churnSeriesWithHllsToInclude
 | project Day, ["Active Users"] = s1 + NewUsers, ["Returning Users"] = s1, ["Lost Users"] = ChurnedUsers, ["New Users"] = NewUsers
 ```
 
+Retention for cohorts
+```
+// Finally, calculate the desired metric for each cohort. In this sample we calculate distinct users but you can change
+// this to any other metric that would measure the engagement of the cohort members.
+| extend 
+    r0 = DistinctUsers(startDate, startDate+7d),
+    r1 = DistinctUsers(startDate, startDate+14d),
+    r2 = DistinctUsers(startDate, startDate+21d),
+    r3 = DistinctUsers(startDate, startDate+28d),
+    r4 = DistinctUsers(startDate, startDate+35d)
+| union (week | where Cohort == startDate + 7d 
+| extend 
+    r0 = DistinctUsers(startDate+7d, startDate+14d),
+    r1 = DistinctUsers(startDate+7d, startDate+21d),
+    r2 = DistinctUsers(startDate+7d, startDate+28d),
+    r3 = DistinctUsers(startDate+7d, startDate+35d) )
+| union (week | where Cohort == startDate + 14d 
+| extend 
+    r0 = DistinctUsers(startDate+14d, startDate+21d),
+    r1 = DistinctUsers(startDate+14d, startDate+28d),
+    r2 = DistinctUsers(startDate+14d, startDate+35d) )
+| union (week | where Cohort == startDate + 21d 
+| extend 
+    r0 = DistinctUsers(startDate+21d, startDate+28d),
+    r1 = DistinctUsers(startDate+21d, startDate+35d) ) 
+| union (week | where Cohort == startDate + 28d 
+| extend 
+    r0 = DistinctUsers (startDate+28d, startDate+35d) )
+// Calculate the retention percentage for each cohort by weeks
+| project Cohort, r0, r1, r2, r3, r4,
+          p0 = r0/r0*100,
+          p1 = todouble(r1)/todouble (r0)*100,
+          p2 = todouble(r2)/todouble(r0)*100,
+          p3 = todouble(r3)/todouble(r0)*100,
+          p4 = todouble(r4)/todouble(r0)*100 
+| sort by Cohort asc
+```
