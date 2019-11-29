@@ -1,12 +1,33 @@
+You can start learning KQL at https://portal.loganalytics.io/demo
 
-Start learning at https://portal.loganalytics.io/demo
-
-**Learning resources**
+**Useful learning resources**
 
 * [Get started with Azure monitor](https://docs.microsoft.com/en-us/azure/azure-monitor/log-query/get-started-portal)
 * https://github.com/MicrosoftDocs/azure-docs/blob/master/articles/data-explorer/write-queries.md
 * https://4pp1n51ght5.com/2017/08/23/using-azure-log-analytics-to-calculate-user-engagement-metrics/
 * https://4pp1n51ght5.com/2017/02/08/calculating-stickiness-using-appinsights-analytics/
+
+**Contents**
+
+- [Searching](https://github.com/tobmcv/kusto-queries/blob/master/queries.md#searching)
+- [Time and timerange](https://github.com/tobmcv/kusto-queries/blob/master/queries.md#time-and-timerange)
+- [Where](https://github.com/tobmcv/kusto-queries/blob/master/queries.md#where)
+- [Take and Limit command](https://github.com/tobmcv/kusto-queries/blob/master/queries.md#take-and-limit-command)
+- [Count operator](https://github.com/tobmcv/kusto-queries/blob/master/queries.md#count-operator)
+- [Summarize](https://github.com/tobmcv/kusto-queries/blob/master/queries.md#summarize)
+- [Extend](https://github.com/tobmcv/kusto-queries/blob/master/queries.md#extend)
+- [Project command](https://github.com/tobmcv/kusto-queries/blob/master/queries.md#project-command)
+- [Distinct](https://github.com/tobmcv/kusto-queries/blob/master/queries.md#distinct)
+
+- [Scalar operators](https://github.com/tobmcv/kusto-queries/blob/master/queries.md#scalar-operators)
+- [Extraxt](https://github.com/tobmcv/kusto-queries/blob/master/queries.md#extract)
+- [Parse](https://github.com/tobmcv/kusto-queries/blob/master/queries.md#parse)
+- [datetime arithmetic](https://github.com/tobmcv/kusto-queries/blob/master/queries.md#datetime-arithmetic)
+- [Between commands](https://github.com/tobmcv/kusto-queries/blob/master/queries.md#between-commands)
+- [Todynamic](https://github.com/tobmcv/kusto-queries/blob/master/queries.md#todynamic)
+- [format_datetime](https://github.com/tobmcv/kusto-queries/blob/master/queries.md#format_datetime)
+- [Calculating KPIs for products and usage](https://github.com/tobmcv/kusto-queries/blob/master/queries.md#common-kpis)
+
 
 ## Searching 
 
@@ -14,7 +35,8 @@ Search across all datasets
 ```
 search "event name" | take 10
 ```
-Note we use the `take` command to limit our search to 10 search results. This speeds up our querying substantially. Kusto queries can take a long time to execute if the datasets are large. To avoid this, use the take command before running queries on a full dataset. 
+
+We can use the `take` command to limit our search to 10 search results. This speeds up our querying substantially. Kusto queries can take a long time to execute if the datasets are large. To avoid this, use the take command before running queries on a full dataset. 
 
 The timeout can take anything from 10 seconds up to 30 minutes. You can cancel your query if you don't want to wait, or allow the query to run and open a new query in a new tab if you need it.
 
@@ -358,7 +380,7 @@ Perf
 | top 25 by FreeMegaBytes asc               // Filter to most critical ones
 ```
 
-# Scalar operators
+## Scalar operators
 
 Scalar operators allow us to format and transform data, and logical operators for "if then" logic.
 
@@ -711,7 +733,7 @@ Perf
 
 
 
-## **Common KPIs**
+## **Calculating KPIs**
 
 DAU to MAU activity ratio - Daily Active Users to Monthly Active Users
 ```
@@ -755,9 +777,8 @@ customEvents
 | take 10
 ```
 
-### From Tutorial With Demo Dataset
-
 Summarize average counter values for a specific machine by a specific metric for a given continuous variable, binning values
+
 ```
 Perf
 | where TimeGenerated > ago(30d)
