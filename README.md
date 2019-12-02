@@ -4,8 +4,6 @@ Example queries for learning the Kusto Query language in [Azure Data Explorer](h
 
 Azure Data Explorer is a Microsoft service for analysing log and telemetry data. You can use with your mobile application and monitoring device in a company network.
 
-See [queries.md](https://github.com/tobmcv/kusto-queries/blob/master/queries.md) for example queries. 
-
 You can start learning KQL at https://portal.loganalytics.io/demo
 
 **Useful learning resources**
