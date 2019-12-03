@@ -25,6 +25,7 @@ You can start learning KQL at https://portal.loganalytics.io/demo
 - [Project command](https://github.com/tobmcv/kusto-queries/blob/master/README.md#project-command)
 - [Distinct](https://github.com/tobmcv/kusto-queries/blob/master/README.md#distinct)
 - [Scalar operators](https://github.com/tobmcv/kusto-queries/blob/master/README.md#scalar-operators)
+- [String operators](https://github.com/tobmcv/kusto-queries/blob/master/README.md#string-operators)
 - [Extraxt](https://github.com/tobmcv/kusto-queries/blob/master/README.md#extract)
 - [Parse](https://github.com/tobmcv/kusto-queries/blob/master/README.md#parse)
 - [datetime arithmetic](https://github.com/tobmcv/kusto-queries/blob/master/README.md#datetime-arithmetic)
@@ -466,6 +467,60 @@ Perf
 ```
 
 `order by` is an alias for `sort by`
+
+## String operators
+
+String operators let us match a specifc string, take into account case sensitivity and use affixes to match several strings in sequence.
+
+Extending our previous queries we can supplement with an additional Equals operator that is case-insensitive by using `=~`. This is useful when a log can contain multiple entries with different casing.
+```
+Perf
+| where TimeGenerated > ago(15m)
+| where CounterName == "Avg. Disk sec/Read" and InstanceName =~ "SDA"  
+| take 10
+```
+
+The affixes in Kusto offer very specific string matching, including `prefix`, `suffix` for the beginning and ending of a string respectively
+```
+Perf
+| where TimeGenerated > ago(15m)
+| where CounterName == "Avg. Disk sec/Read" and Computer hassuffix "cluster-master" 
+| take 10
+```
+
+There are also sequential matches and negated matches
+```
+Perf
+| where TimeGenerated > ago(15m)
+| where CounterName == "Avg. Disk sec/Read" and Computer hasprefix "gangams-kind" 
+| take 10
+```
+
+Negated matches also work, but are slower
+```
+Perf
+| where TimeGenerated > ago(15m)
+| where CounterName == "Avg. Disk sec/Read" and Computer !hasprefix "gangams-kind" 
+| take 10
+```
+
+If we are looking for the presence of a specific term it is much faster to look it up using `has` and `in`, than using `contains`, `startswith` and `endswith`.
+```
+Perf
+| where TimeGenerated > ago(15m)
+| where CounterName == "Avg. Disk sec/Read" and InstanceName has "SDA"  
+| take 10
+```
+
+Microsoft's official example of this is to compare these queries
+```
+EventLog | where continent has "North" | count;
+EventLog | where continent contains "nor" | count
+```
+
+The reason the first query runs faster is because Kusto indexes all columns including those of type string. Words consisting of over 4 characters are treated as **terms**. These are transformed into sequences of alphanumeric characters, and therefore an exact match can be run much faster on these words.
+
+See the [String Operators documentation](https://docs.microsoft.com/en-us/azure/kusto/query/datatypes-string-operators) for more information on this feature. It will help you choose different operators to increase performance of your queries. 
 
 ## Extract
 Extract will match a string based on a regular expression pattern, and retrieves only the part that matches.
