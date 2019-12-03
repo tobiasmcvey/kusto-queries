@@ -31,7 +31,7 @@ You can start learning KQL at https://portal.loganalytics.io/demo
 - [Between commands](https://github.com/tobmcv/kusto-queries/blob/master/README.md#between-commands)
 - [Todynamic](https://github.com/tobmcv/kusto-queries/blob/master/README.md#todynamic)
 - [format_datetime](https://github.com/tobmcv/kusto-queries/blob/master/README.md#format_datetime)
-- [Calculating KPIs for products and usage](https://github.com/tobmcv/kusto-queries/blob/master/README.md#common-kpis)
+- [Calculating KPIs for products and usage](https://github.com/tobmcv/kusto-queries/blob/master/README.md#calculating-kpis)
 
 
 ## Searching 
