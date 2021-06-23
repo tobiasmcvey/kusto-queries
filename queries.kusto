@@ -1,127 +1,64 @@
-# Kusto-queries
-
-Example queries for learning the Kusto Query language in [Azure Data Explorer](https://docs.microsoft.com/en-us/azure/data-explorer/data-explorer-overview). Kusto can be used in Azure Monitor Logs, Application Insights, Time Series Insights and Defender Advanced Threat Perception. 
-
-Azure Data Explorer is a Microsoft service for analysing log and telemetry data. You can use it to log events in your mobile applications and for monitoring devices enrolled in a company network.
-
-You can start learning KQL at https://portal.loganalytics.io/demo
-
-**Useful learning resources**
-
-* [Get started with Azure monitor](https://docs.microsoft.com/en-us/azure/azure-monitor/log-query/get-started-portal)
-* https://github.com/MicrosoftDocs/azure-docs/blob/master/articles/data-explorer/write-queries.md
-* https://4pp1n51ght5.com/2017/08/23/using-azure-log-analytics-to-calculate-user-engagement-metrics/
-* https://4pp1n51ght5.com/2017/02/08/calculating-stickiness-using-appinsights-analytics/
-
-**Contents**
-
-- [Kusto-queries](#kusto-queries)
-  - [**Searching**](#searching)
-  - [**Time and timerange**](#time-and-timerange)
-  - [**Where**](#where)
-  - [**Take and Limit command**](#take-and-limit-command)
-  - [**Count operator**](#count-operator)
-  - [**Summarize**](#summarize)
-  - [**Extend**](#extend)
-  - [**Project command**](#project-command)
-  - [**Distinct**](#distinct)
-  - [**Scalar operators**](#scalar-operators)
-  - [**String operators**](#string-operators)
-  - [**Extract**](#extract)
-  - [**Parse**](#parse)
-  - [**datetime arithmetic**](#datetime-arithmetic)
-  - [**Between commands**](#between-commands)
-  - [**Todynamic**](#todynamic)
-  - [**format_datetime**](#format_datetime)
-  - [**Calculating KPIs**](#calculating-kpis)
-
-## **Searching** 
-
-Search across all datasets
-
-```kusto
+// Search across all datasets
 search "event name" | take 10
-```
 
-We can use the `take` command to limit our search to 10 search results. This speeds up our querying substantially. Kusto queries can take a long time to execute if the datasets are large. To avoid this, use the take command before running queries on a full dataset. 
-
-The timeout can take anything from 10 seconds up to 30 minutes. You can cancel your query if you don't want to wait, or allow the query to run and open a new query in a new tab if you need it.
-
-Searching in a single dataset
-```kusto
+// Searching in a single dataset
 Perf | search "Contoso"
-```
-Searching in multiple datasets
-```kusto
+
+// Searching in multiple datasets
 search in (Perf, Event, Alert) "Contoso" | take 10
-```
-Searching in specific columns for a match
-```kusto
+
+// Searching in specific columns for a match
 Perf
 | search CounterName=="Available MBytes" | take 10
-```
-Searching for a term anywhere in text
-```kusto 
+
+//Searching for a term anywhere in text
 Perf
 | search "*Bytes*" | take 10
-```
-Searching for columns that begins with
-```kusto 
+
+// Searching for columns that begins with
 Perf
 | search * startswith "Bytes" | take 10
-```
-Searching for columns that ends with
-```kusto 
+
+// Searching for columns that ends with
 Perf
 | search * endswith "Bytes" | take 10
-```
-Search starts with specific term, anything in between and ends with a specific term
-```kusto 
+
+//Search starts with specific term, anything in between and ends with a specific term
 Perf
 | search "Free*bytes" | take 10
-```
 
-**Combining searches**
 
-Multiple terms
-```kusto 
+// **Combining searches**
+// Multiple terms
 Perf
 | search "Free*bytes" and ("C:" or "D:") | take 10
-```
-Using regular expressions
-```kusto 
+
+// Using regular expressions
 Perf
 | search InstanceName matches regex "[A-Z]:" | take 10
-```
 
-## **Time and timerange**
-Dynamic timerange
-```kusto 
+
+// **Time and timerange**
+//Dynamic timerange
 | where timestamp between (datetime(2019-01-01T00:01:24.615Z)..now())
-```
 
-## **Where** 
 
-```kusto 
+// **Where** 
 Perf
 | where TimeGenerated >= ago(1h)
-```
-Note the time range for the query is automatically set in the query when we use time operators in our where clause
 
-Using the `and` statement
-```kusto 
+//Note the time range for the query is automatically set in the query when we use time operators in our where clause
+//Using the `and` statement
 Perf
 | where TimeGenerated >= ago(1h) and CounterName == "Bytes Received/sec" | take 10
-```
 
-Using the `or` statement
-```kusto 
+
+// Using the `or` statement
 Perf
 | where TimeGenerated >= ago(1h) and (CounterName == "Bytes Received/sec" or CounterName == "% Processor Time") | take 10
-```
 
-Stacking multiple where clauses
-```kusto 
+
+//Stacking multiple where clauses
 Perf
 | where TimeGenerated >= ago(1h) 
 | where (CounterName == "Bytes Received/sec" 
@@ -129,168 +66,140 @@ Perf
         CounterName == "% Processor Time") 
 | where CounterValue > 0 
 | take 10
-```
 
-Other uses for where - simulating search with where
-```kusto 
+
+//Other uses for where - simulating search with where
 Perf
 | where * has "Bytes" | take 10
-```
 
-**Positional matching** with where
 
-Matches words beginning with Bytes
-```kusto 
+//**Positional matching** with where
+// Matches words beginning with Bytes
 Perf
 | where * hasprefix "Bytes" | take 10
-```
 
-Matches words ending with Bytes
-```kusto 
+
+//Matches words ending with Bytes
 Perf
 | where * hassuffix "Bytes" | take 10
-```
 
-Using `contains`
-```kusto 
+
+//Using `contains`
 Perf
 | where * contains "Bytes" | take 10
-```
 
-Using regular expressions with where
-```kusto 
+//Using regular expressions with where
 Perf
 | where InstanceName matches regex "[A-Z]:" | take 10
-```
 
-## **Take and Limit command**
-Take retrieves a random number of rows, f.ex
-```kusto 
+
+//**Take and Limit command**
+//Take retrieves a random number of rows, f.ex
 Perf
 | take 10
-```
-Takes 10 rows
 
-Limit is the equivalent
-```kusto 
+//Takes 10 rows
+
+//Limit is the equivalent
 Perf
 | limit 10
-```
 
-## **Count operator** 
-Count rows in a table
-```kusto 
+// **Count operator** 
+// Count rows in a table
 Perf
 | count
-```
-Counts all rows in the Perf dataset
+// Counts all rows in the Perf dataset
 
-Count can be used with filtering to count rows in a selected table
-```kusto 
+// Count can be used with filtering to count rows in a selected table
 Perf
 | where TimeGenerated >= ago(1h)
         and CounterName == "Bytes received/sec"
         and CounterValue > 0
 | count
-```
 
-## **Summarize**
 
-Aggregation function for summarizing data in a table, can include `by`
-```kusto 
+// **Summarize**
+// Aggregation function for summarizing data in a table, can include `by`
 Perf
 | summarize count()  by CounterName
-```
 
-Summarizing multiple columns
-```kusto 
+
+// Summarizing multiple columns
 Perf
 | summarize count()  by ObjectName, CounterName
-```
-Note it generates a third column called `count_`. The name is automatically generated.
 
-If we want to supply a more suitable name as a variable, we can name it
-```kusto 
+// Note it generates a third column called `count_`. The name is automatically generated.
+
+// If we want to supply a more suitable name as a variable, we can name it
 Perf
 | summarize PerfCount=count()
             by ObjectName, CounterName
-```
 
-With Summarize, use other aggregation functions
-```kusto 
+
+// With Summarize, use other aggregation functions
 Perf
 | where CounterName == "% Free Space"
 | summarize NumberOfEntries=count()
             , AverageFreeSpace=avg(CounterValue)
             by CounterName
-```
 
-Using `Bin` to create logical groups
-```kusto 
+
+// Using `Bin` to create logical groups
 Perf
 | summarize NumberOfEntries=count()
             by bin(TimeGenerated, 1d)
-```
 
-Using other values for binning
-```kusto 
+
+// Using other values for binning
 Perf
 | where CounterName == "% Free Space"
 | summarize NumberOfRowsAtThisPercentLevel=count()
             by bin(CounterValue, 10)
-```
 
 
-## **Extend**
 
-Extend allows you to create calculated columns to add to your tables
-```kusto 
+// **Extend**
+// Extend allows you to create calculated columns to add to your tables
 Perf
 | where CounterName == "Free Megabytes"
 | extend FreeGB = CounterValue / 1000
-```
 
-You can also create multiple columns
-```kusto 
+
+// You can also create multiple columns
 Perf
 | where CounterName == "Free Megabytes"
 | extend FreeGB = CounterValue / 1000
         , FreeKB = CounterValue * 1000
-```
 
-Repeating a column
-```kusto 
+
+// Repeating a column
 Perf
 | where CounterName == "Free Megabytes"
 | extend FreeGB = CounterValue / 1000
         , FreeMB = CounterValue 
         , FreeKB = CounterValue * 1000
-```
 
-Create new string values
 
-We can create a new column with string values
-```kusto 
+// Create new string values
+// We can create a new column with string values
 Perf
 | where TimeGenerated >= ago(10m)
 | extend ObjectCounter = strcat(ObjectName, " - ", CounterName) 
-```
-We use `strcat` to concatenate strings
 
-## **Project command**
+// We use `strcat` to concatenate strings
 
-Project allows us to select which columns we want in our table
-```kusto 
+// **Project command**
+
+// Project allows us to select which columns we want in our table
 Perf
 | project ObjectName
         , CounterName 
         , InstanceName 
         , CounterValue 
         , TimeGenerated 
-```
 
-Project and Extend are very useful when creating tables with our specific data.
-```kusto 
+
+// Project and Extend are very useful when creating tables with our specific data.
 Perf
 | project ObjectName
         , CounterName 
@@ -300,10 +209,9 @@ Perf
 | extend FreeGB = CounterValue / 1000
         , FreeMB = CounterValue 
         , FreeKB = CounterValue * 1000
-```
 
-If we want to omit a specific column we must calculate our values first, then project afterwards
-```kusto 
+
+// If we want to omit a specific column we must calculate our values first, then project afterwards
 Perf
 | extend FreeGB = CounterValue / 1000
         , FreeMB = CounterValue 
@@ -316,10 +224,7 @@ Perf
         , FreeMB 
         , FreeKB 
 
-```
-
-OR we can just project our data and calculate it on the fly
-```kusto 
+// OR we can just project our data and calculate it on the fly
 Perf
 | where CounterName == "Free Megabytes"
 | project ObjectName
@@ -330,49 +235,39 @@ Perf
         , FreeMB = CounterValue 
         , FreeKB = CounterValue * 1000
 
-```
-
-`Project-away` lets you remove selected columns from the output
-```kusto 
+// `Project-away` lets you remove selected columns from the output
 Perf
 | where CounterName == "Free Megabytes"
 | project-away TenantId
             , SourceSystem 
             , CounterPath 
             , MG
-```
 
-`Project-rename` lets you rename a specific column
-```kusto 
+
+// `Project-rename` lets you rename a specific column
 Perf
 | where TimeGenerated > ago(1h)
 | project-rename myRenamedComputer = Computer 
-```
 
-## **Distinct**
 
-Retrieves a list of deduplicated values 
-```kusto 
+// **Distinct**
+// Retrieves a list of deduplicated values 
 Perf
 | distinct ObjectName, CounterName
-```
 
-Only show unique error events
-```kusto 
+
+// Only show unique error events
 Event
 | where EventLevelName == "Error"
 | distinct Source
-```
 
-Using top for the first 20 rows
-```kusto 
+//Using top for the first 20 rows
 Perf
 | top 20 by TimeGenerated desc
-```
-Sort rows ascending with `asc` or descending with `desc`
 
-Combining everything so far
-```kusto 
+// Sort rows ascending with `asc` or descending with `desc`
+
+// Combining everything so far
 Perf
 | where CounterName == "Free Megabytes"     // Get the free Megabytes
         and TimeGenerated >= ago(1h)        // ... within the last hour
@@ -385,42 +280,33 @@ Perf
         , CounterName                       // ...the perf table will have
         , FreeMegaBytes                     // ...multiple entries during the day
 | top 25 by FreeMegaBytes asc               // Filter to most critical ones
-```
 
-## **Scalar operators**
 
-Scalar operators allow us to format and transform data, and logical operators for "if then" logic.
+// **Scalar operators**
+// Scalar operators allow us to format and transform data, and logical operators for "if then" logic.
 
-**Print** retrieves an output that is defined or calculated
-```kusto 
+// **Print** retrieves an output that is defined or calculated
 print "Hello world"
-```
-This command is useful for debugging a calculation stepwise
 
-You can also name the output
-```kusto 
-print something="something"
-```
+// This command is useful for debugging a calculation stepwise
+// You can also name the output
+// print something="something"
 
-Get the time in UTC. This is the standard in all Azure logs. We can use it for any changes to date and time data.
-```kusto 
+
+// Get the time in UTC. This is the standard in all Azure logs. We can use it for any changes to date and time data.
 print now()
-```
 
-Print time one hour ago
-```kusto 
+
+// Print time one hour ago
 print ago(1) // 1h 1m 1d 1s 1ms 1microsend 1tick
-```
 
-Print time in the future
-```kusto 
+
+// Print time in the future
 print ago(-1d) // print time tomorrow, -365d gives us a year in the future
-```
 
-This lets us retrieve values for a specific timerange when combined with other clauses such as where and other operators.
+// This lets us retrieve values for a specific timerange when combined with other clauses such as where and other operators.
 
-**Sort** lets us sort the columns as desired
-```kusto 
+// **Sort** lets us sort the columns as desired
 Perf
 | where TimeGenerated > ago(15m)
 | where CounterName == "Avg. Disk sec/Read"
@@ -433,10 +319,9 @@ Perf
         , CounterValue 
 | sort by Computer
         , TimeGenerated
-```
 
-Sort by ascending
-```kusto 
+
+// Sort by ascending
 Perf
 | where TimeGenerated > ago(15m)
 | where CounterName == "Avg. Disk sec/Read"
@@ -449,10 +334,9 @@ Perf
         , CounterValue 
 | sort by Computer asc
         , TimeGenerated asc
-```
 
-You can also mix sorting clauses
-```kusto 
+
+// You can also mix sorting clauses
 Perf
 | where TimeGenerated > ago(15m)
 | where CounterName == "Avg. Disk sec/Read"
@@ -465,94 +349,78 @@ Perf
         , CounterValue 
 | sort by Computer asc
         , TimeGenerated
-```
 
-`order by` is an alias for `sort by`
 
-## **String operators**
+// `order by` is an alias for `sort by`
 
-String operators let us match a specifc string, take into account case sensitivity and use affixes to match several strings in sequence.
+// **String operators** //
+// String operators let us match a specifc string, take into account case sensitivity and use affixes to match several strings in sequence.
 
-Extending our previous queries we can supplement with an additional Equals operator that is case-insensitive by using `=~`. This is useful when a log can contain multiple entries with different casing.
-```kusto 
+// Extending our previous queries we can supplement with an additional Equals operator that is case-insensitive by using `=~`. This is useful when a log can contain multiple entries with different casing.
 Perf
 | where TimeGenerated > ago(15m)
 | where CounterName == "Avg. Disk sec/Read" and InstanceName =~ "SDA"  
 | take 10
-```
 
-The affixes in Kusto offer very specific string matching, including `prefix`, `suffix` for the beginning and ending of a string respectively
-```kusto 
+
+// The affixes in Kusto offer very specific string matching, including `prefix`, `suffix` for the beginning and ending of a string respectively
 Perf
 | where TimeGenerated > ago(15m)
 | where CounterName == "Avg. Disk sec/Read" and Computer hassuffix "cluster-master" 
 | take 10
-```
 
-There are also sequential matches and negated matches
-```kusto 
+
+// There are also sequential matches and negated matches
 Perf
 | where TimeGenerated > ago(15m)
 | where CounterName == "Avg. Disk sec/Read" and Computer hasprefix "gangams-kind" 
 | take 10
-```
 
-Negated matches also work, but are slower
-```kusto 
+
+// Negated matches also work, but are slower
 Perf
 | where TimeGenerated > ago(15m)
 | where CounterName == "Avg. Disk sec/Read" and Computer !hasprefix "gangams-kind" 
 | take 10
-```
 
-If we are looking for the presence of a specific term it is much faster to look it up using `has` and `in`, than using `contains`, `startswith` and `endswith`.
-```kusto 
+// If we are looking for the presence of a specific term it is much faster to look it up using `has` and `in`, than using `contains`, `startswith` and `endswith`.
 Perf
 | where TimeGenerated > ago(15m)
 | where CounterName == "Avg. Disk sec/Read" and InstanceName has "SDA"  
 | take 10
-```
 
-Microsoft's official example of this is to compare these queries
-```kusto 
+// Microsoft's official example of this is to compare these queries
 EventLog | where continent has "North" | count;
 EventLog | where continent contains "nor" | count
-```
 
-The reason the first query runs faster is because Kusto indexes all columns including those of type string. Words consisting of over 4 characters are treated as **terms**. These are transformed into sequences of alphanumeric characters, and therefore an exact match can be run much faster on these words.
+//The reason the first query runs faster is because Kusto indexes all columns including those of type string. Words consisting of over 4 characters are treated as **terms**. These are transformed into sequences of alphanumeric characters, and therefore an exact match can be run much faster on these words.
 
-See the [String Operators documentation](https://docs.microsoft.com/en-us/azure/kusto/query/datatypes-string-operators) for more information on this feature. It will help you choose different operators to increase performance of your queries. 
+// See the [String Operators documentation](https://docs.microsoft.com/en-us/azure/kusto/query/datatypes-string-operators) for more information on this feature. It will help you choose different operators to increase performance of your queries. 
 
-## **Extract**
-Extract will match a string based on a regular expression pattern, and retrieves only the part that matches.
-
-```kusto 
+// **Extract**
+// Extract will match a string based on a regular expression pattern, and retrieves only the part that matches.
 Perf
 | where ObjectName == "LogicalDisk"
         and InstanceName matches regex "[A-Z]:" 
 | project Computer 
         , CounterName 
         , extract("[A-Z]:", 0, InstanceName)
-```
 
-Extract only the disk name without the colon
-```kusto 
+
+// Extract only the disk name without the colon
 Perf
 | where ObjectName == "LogicalDisk"
         and InstanceName matches regex "[A-Z]:" 
 | project Computer 
         , CounterName 
         , extract("([A-Z]):", 1, InstanceName)
-```
 
-## **Parse**
-Parse takes a text string and extracts part of it into a column name using markers
 
-`Parse` runs until it has parsed the entire dataset or reached the final match we've specified.
+// **Parse**
+// Parse takes a text string and extracts part of it into a column name using markers
+// `Parse` runs until it has parsed the entire dataset or reached the final match we've specified.
 
-Parse is very useful when you have large blobs of text you want to turn into standard components
-
-```kusto 
+// Parse is very useful when you have large blobs of text you want to turn into standard components
 Event
 | where RenderedDescription startswith "Event code:"
 | parse RenderedDescription with "Event code: " myEventCode
@@ -563,12 +431,10 @@ Event
                                 " Event sequence: " myEventSequence
                                 " Event occurrence: " *
 | project myEventCode, myEventMessage, myEventTime, myEventTimeUTC, myEventID, myEventSequence 
-```
 
-## **datetime arithmetic**
 
-Convert a string into a datetime for our query - for year to date, using `datetime`
-```kusto 
+// **datetime arithmetic**
+// Convert a string into a datetime for our query - for year to date, using `datetime`
 Perf
 | where CounterName == "Avg. Disk sec/Read"
 | where CounterValue > 0
@@ -582,10 +448,9 @@ Perf
         , HowLongAgo 
         , TimeSinceStartofYear 
 
-```
 
-Converting a datetime, f.ex into hours can be done with simple arithmetic of division
-```kusto 
+
+// Converting a datetime, f.ex into hours can be done with simple arithmetic of division
 Perf
 | where CounterName == "Avg. Disk sec/Read"
 | where CounterValue > 0
@@ -601,20 +466,18 @@ Perf
         , TimeSinceStartOfYear 
         , TimeSinceStartOfYearInHours 
 
-```
 
-Simple datetime calculations over columns
-```kusto 
+
+// Simple datetime calculations over columns
 Usage
 | extend Duration=( EndTime - StartTime )
 | project Computer 
         , StartTime 
         , EndTime 
         , Duration
-```
 
-Combining summarize with datetime functions by a specific timeperiod
-```kusto 
+
+// Combining summarize with datetime functions by a specific timeperiod
 Event
 | where TimeGenerated >= ago(7d)
 | extend DayGenerated = startofday(TimeGenerated) 
@@ -623,10 +486,8 @@ Event
 | summarize EventCount=count() 
         by DayGenerated
         , Source
-```
-Retrieves number of events per source and for the last 7 days.
 
-```kusto 
+// Retrieves number of events per source and for the last 7 days.
 Event
 | where TimeGenerated >= ago(365d)
 | extend MonthGenerated = startofmonth(TimeGenerated) 
@@ -637,13 +498,12 @@ Event
         , Source
 | sort by MonthGenerated desc
         , Source asc
-```
-Retrieves number of events per source by month for the last 365 days.
 
-You can also use `startofweek` and `startofyear` for similar operations.
+//Retrieves number of events per source by month for the last 365 days.
 
-There are also corresponding end of functions, f.ex `endofday` `endofweek`, `endofmonth` and `endofyear`
-```kusto 
+// You can also use `startofweek` and `startofyear` for similar operations.
+
+//There are also corresponding end of functions, f.ex `endofday` `endofweek`, `endofmonth` and `endofyear`
 Event
 | where TimeGenerated >= ago(7d)
 | extend DayGenerated = endofday(TimeGenerated)
@@ -654,50 +514,40 @@ Event
         , Source
 | sort by DayGenerated desc
         , Source asc
-```
 
-## **Between commands**
-Allows us to specify a range of values, be it numeric or datetime, to retrieve.
 
-```kusto 
+// **Between commands**
+// Allows us to specify a range of values, be it numeric or datetime, to retrieve.
 Perf
 | where CounterName == "% Free Space"
 | where CounterValue between( 70.0 .. 100.0 )
-```
 
-Likewise for dates
-```kusto 
+
+// Likewise for dates
 Perf
 | where CounterName == "% Free Space"
 | where TimeGenerated between( datetime(2019-04-01) .. datetime(2019-04-03)  )
 | take 10
-```
 
-Gathering data for start of and end of specific dates
-```kusto 
+
+// Gathering data for start of and end of specific dates
 Perf
 | where CounterName == "% Free Space"
 | where TimeGenerated between( startofday(datetime(2019-04-01)) .. endofday(datetime(2019-04-03))  )
 | take 10
-```
 
-There is also a "not between" operator `!between`, which lets us fetch values not within a range - only those outside it.
-```kusto 
+
+// There is also a "not between" operator `!between`, which lets us fetch values not within a range - only those outside it.
 Perf
 | where CounterName == "% Free Space"
 | where CounterValue !between ( 0.0 .. 69.9999 )
 | take 10
-```
 
-## **Todynamic** 
 
-Takes json stored in a string and lets you retrieve its individual values
-
-Convert json to a variable using `todynamic`, then step into the json array and project the values
-
-Use the key as column names
-
-```kusto 
+// **Todynamic** 
+// Takes json stored in a string and lets you retrieve its individual values
+// Convert json to a variable using `todynamic`, then step into the json array and project the values
+// Use the key as column names
 SecurityAlert
 | where TimeGenerated > ago(365d)
 | extend Extprops=todynamic(ExtendedProperties) 
@@ -719,11 +569,8 @@ SecurityAlert
         , Extprops["ReportingSystem"]
         , Extprops["OccuringDatacenter"]
 
-```
 
-You can use column-renaming to structure the output better
-
-```kusto 
+// You can use column-renaming to structure the output better
 SecurityAlert
 | where TimeGenerated > ago(365d)
 | extend Extprops=todynamic(ExtendedProperties) 
@@ -745,11 +592,9 @@ SecurityAlert
         , ReportingSystem = Extprops["ReportingSystem"]
         , OccuringDataCenter = Extprops["OccuringDatacenter"]
 
-```
 
-If the JSON keys do not have spaces you can also use property notation
 
-```kusto 
+// If the JSON keys do not have spaces you can also use property notation
 SecurityAlert
 | where TimeGenerated > ago(365d)
 | extend Extprops=todynamic(ExtendedProperties) 
@@ -770,14 +615,12 @@ SecurityAlert
         , ServiceId = Extprops.ServiceId
         , ReportingSystem = Extprops.ReportingSystem
         , OccuringDataCenter = Extprops.OccuringDatacenter
-```
 
-Multilevel notation is also supported, f.ex `Extprops.Level1.Level2`
 
-## **format_datetime**
-Allows you to return specific date formats
+// Multilevel notation is also supported, f.ex `Extprops.Level1.Level2`
 
-```kusto 
+// **format_datetime**
+// Allows you to return specific date formats
 Perf
 | take 100 
 | project CounterName 
@@ -789,46 +632,40 @@ Perf
         , format_datetime(TimeGenerated, "MM/dd/yyyy hh:mm:ss tt")
         , format_datetime(TimeGenerated, "MM/dd/yyyy HH:MM:ss")
         , format_datetime(TimeGenerated, "MM/dd/yyyy HH:mm:ss.ffff")
-```
 
 
 
 
-## **Calculating KPIs**
 
-DAU to MAU activity ratio - Daily Active Users to Monthly Active Users
-```kusto 
+// **Calculating KPIs**
+
+// DAU to MAU activity ratio - Daily Active Users to Monthly Active Users
 pageViews | union *
 | where timestamp > ago(90d)
 | evaluate activity_engagement(user_Id, timestamp, 1d, 28d)
 | project timestamp, Dau_Mau=activity_ratio*100 
 | where timestamp > ago(62d) // remove tail with partial data
 | render timechart 
-```
 
-New Users
-```kusto 
+// **New Users**
 customEvents
 | evaluate new_activity_metrics(session_Id, timestamp, startofday(ago(7d)), startofday(now()), 1d)
-```
 
-New Users, Returning and Churned
-https://docs.microsoft.com/en-us/azure/kusto/query/new-activity-metrics-plugin
-```kusto 
+
+// New Users, Returning and Churned
+// https://docs.microsoft.com/en-us/azure/kusto/query/new-activity-metrics-plugin
 T | evaluate new_activity_metrics(id, datetime_column, startofday(ago(30d)), startofday(now()), 1d, dim1, dim2, dim3)
-```
 
-Stepping into a JSON object - example: Summarise events
-```kusto 
+
+// Stepping into a JSON object - example: Summarise events
 customEvents
 | where customDimensions != ""
 | extend customDimensions.Properties.event 
 | where customDimensions contains "Event name"
 | take 10
-```
 
-Stepping into a JSON object - example: Counting users with an event
-```kusto 
+
+// Stepping into a JSON object - example: Counting users with an event
 customEvents
 | where timestamp > ago(30d)
 | where customDimensions != ""
@@ -836,27 +673,23 @@ customEvents
 | where customDimensions contains "Event name"
 | summarize dcount(user_Id) by bin(timestamp, 1d)
 | take 10
-```
 
-Summarize average counter values for a specific machine by a specific metric for a given continuous variable, binning values
 
-```kusto 
+// Summarize average counter values for a specific machine by a specific metric for a given continuous variable, binning values
 Perf
 | where TimeGenerated > ago(30d)
 | where Computer == "sqlserver-1.contoso.com"
 | where CounterName == "Available MBytes"
 | summarize avg(CounterValue) by bin(TimeGenerated, 1h)
-```
 
-Search for specific text - WORKS but not much data
-```kusto 
+
+// Search for specific text - WORKS but not much data
 customEvents
 | search "2019"
-```
 
-Unique Users, New Users, Returning Users, Lost Users
-Can be used in Workbooks with Parameter fields - not in Log Analytics
-```kusto 
+
+// **Unique Users, New Users, Returning Users, Lost Users**
+// Can be used in Workbooks with Parameter fields - not in Log Analytics
 let timeRange = {TimeRange};
 let monthDefinition = {Metric};
 let hlls = union customEvents, pageViews
@@ -886,10 +719,10 @@ churnSeriesWithHllsToInclude
 | extend NewUsers = s0 - s1
 | extend ChurnedUsers = -1 * (dcount_hll(LastMonth) - s1) // Last Months Users - Returning Users
 | project Day, ["Active Users"] = s1 + NewUsers, ["Returning Users"] = s1, ["Lost Users"] = ChurnedUsers, ["New Users"] = NewUsers
-```
 
-Retention for cohorts
-```kusto
+
+// Retention for cohorts
+
 // Finally, calculate the desired metric for each cohort. In this sample we calculate distinct users but you can change
 // this to any other metric that would measure the engagement of the cohort members.
 | extend 
@@ -924,4 +757,4 @@ Retention for cohorts
           p3 = todouble(r3)/todouble(r0)*100,
           p4 = todouble(r4)/todouble(r0)*100 
 | sort by Cohort asc
-```
+
